@@ -61,16 +61,36 @@ The repo contains **no LLM API calls**. Models run only when OpenClaw executes a
 |------|----------|-------|
 | Preflight / wake gate | `scripts/job_scouting_preflight.py` | Pure Python; runs before agent |
 | Tuning / keyword load | `scripts/job_scout_tuning.py`, `scripts/search_keywords.py` | Config loaders |
+| Search coverage planning | `scripts/search_plan.py` | Deterministic exploration matrix; no web access |
 | Job search, page reading | **LLM agent** + browser/bash tools | LinkedIn, ATS pages, search engines |
 | JD signal extraction | **LLM agent** | Structured JSON: stack levels, seniority, travel, etc. |
 | `technical_score` (35% weight) | **LLM agent** | Agent-assessed; passed into scorer |
 | Final score and save gates | `scripts/score_lead.py` | Deterministic rules on agent signals |
+| Source/freshness decision policy | `scripts/lead_decision.py` | Policy gate before validated saves |
 | Tracker read/write | `scripts/tracker_ops.py` | Excel workbook; runtime data |
 | Daily Telegram report | **LLM agent** | Follows `docs/report_contract.md` |
 | Cover letter / Fit Matrix | **LLM agent** via `cover-letter` skill | Prose generation |
 | NL pipeline updates | **LLM agent** via `pipeline` skill | "Rejected by Acme" → tracker update |
 
 Design principle: **config and deterministic gates before LLM judgment**.
+
+## Boundary Model
+
+This framework is designed as a case study in responsibility splitting:
+
+- **Scripts** own invariants: query budgets, coverage planning, freshness/source
+  policy, score formulas, deduplication, tracker schema, and cron wake gates.
+- **LLMs** own semantic work: reading job descriptions, extracting signals,
+  assessing technical overlap, finding application angles, summarizing search
+  coverage, and drafting reports/materials.
+- **Skills** own reusable runbooks: what context to load, which tools to call,
+  what handoffs to produce, and what safety policies apply.
+- **Humans** own external consequences: application submission, outbound
+  messages, durable memory updates, and overrides of source/freshness policy.
+
+The planner and decision layer are part of the default scouting workflow. They
+make the daily run broader and more explicit while keeping web search and JD
+reading inside the OpenClaw agent turn.
 
 ## OpenClaw Wiring
 
@@ -90,6 +110,12 @@ See [docs/openclaw_setup.md](docs/openclaw_setup.md) for install and cron wiring
 **Ignored (runtime / personal):** bootstrap markdown, candidate docs, `data/`, tracker xlsx, attachments, `memory/`, secrets.
 
 To fork this framework for another candidate: clone or copy the tracked paths, then add your own runtime overlay without committing private data.
+
+## Case Study
+
+See [CASE_STUDY.md](CASE_STUDY.md) for the public-facing engineering narrative:
+problem context, production constraints, LLM capability boundaries, workflow
+architecture, human decision points, and failure-mode mitigations.
 
 ## Known Gaps
 

@@ -101,8 +101,8 @@ wheels = [
 ]
 
 [[package]]
-name = "openclaw-job-hunter-agent"
-version = "0.1.0"
+name = "openclaw-job-hunting-framework"
+version = "0.2.0"
 source = { virtual = "." }
 dependencies = [
     { name = "openpyxl" },

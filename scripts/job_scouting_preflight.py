@@ -62,11 +62,14 @@ try:
         load_tuning,
         summarize_feedback,
     )
+    from search_plan import build_search_plan, format_markdown as format_search_plan_markdown  # type: ignore
 except Exception as exc:  # pragma: no cover - preflight must degrade gracefully
     load_tuning = None
     format_tuning_summary = None
     load_recent_feedback = None
     summarize_feedback = None
+    build_search_plan = None
+    format_search_plan_markdown = None
     TUNING_IMPORT_ERROR = exc
 else:
     TUNING_IMPORT_ERROR = None
@@ -165,25 +168,6 @@ def _cycle(items: list[str], count: int, offset: int) -> list[str]:
     return [items[(offset + i) % len(items)] for i in range(count)]
 
 
-def _compact_query(query: str) -> str:
-    return " ".join(str(query).split())
-
-
-def _cluster_queries(pack: dict, priorities: set[str]) -> list[str]:
-    queries: list[str] = []
-    for cluster in pack.get("clusters", []) or []:
-        if not isinstance(cluster, dict):
-            continue
-        priority = str(cluster.get("priority") or "").upper()
-        if priority not in priorities:
-            continue
-        for query in cluster.get("boolean_queries", []) or []:
-            compact = _compact_query(query)
-            if compact and compact not in queries:
-                queries.append(compact)
-    return queries
-
-
 def _target_company_rows() -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     try:
@@ -266,6 +250,17 @@ def _feedback_summary(tuning: dict) -> str:
     )
 
 
+def _daily_search_plan(now: dt.datetime, tuning: dict) -> str:
+    if build_search_plan is None or format_search_plan_markdown is None:
+        return f"Search plan unavailable: tuning/search import failed ({TUNING_IMPORT_ERROR})"
+    plan = build_search_plan(
+        date=now.date(),
+        keyword_pack=_load_json(KEYWORD_PACK),
+        tuning=tuning,
+    )
+    return format_search_plan_markdown(plan, include_rollout_notes=True)
+
+
 def _latest_run_delivery_line() -> str:
     if not OPENCLAW_CRON_RUNS.exists():
         return f"No cron run history found: {OPENCLAW_CRON_RUNS}"
@@ -332,48 +327,9 @@ def _runtime_health(tuning: dict) -> str:
 
 def run_plan(now: dt.datetime, tuning: dict | None = None) -> str:
     tuning = tuning or _load_tuning()
-    pack = _load_json(KEYWORD_PACK)
     day_offset = now.toordinal()
     budgets = tuning.get("budgets") if isinstance(tuning.get("budgets"), dict) else {}
-
-    p0 = _cluster_queries(pack, {"P0"})
-    p1 = _cluster_queries(pack, {"P1"})
-    p2 = _cluster_queries(pack, {"P2"})
-
-    p0_count = int(budgets.get("p0_queries") or 5)
-    p1_count = int(budgets.get("p1_queries") or 3)
-    p2_count = int(budgets.get("p2_queries") or 2)
-    query_limit = int(budgets.get("total_queries") or (p0_count + p1_count + p2_count))
     company_limit = int(budgets.get("target_companies_per_run") or 6)
-
-    p0_today = _cycle(p0, p0_count, day_offset)
-    p1_today = _cycle(p1, p1_count, day_offset // 2)
-    p2_today = _cycle(p2, p2_count, day_offset // 7)
-
-    fallback_queries = [
-        '"Softwareentwickler Bildverarbeitung" Hannover OR Braunschweig OR Göttingen',
-        '"Computer Vision Engineer" Niedersachsen Germany Junior OR Graduate',
-        '"optische Messtechnik" Ingenieur Junior Deutschland',
-        '"Test Engineer" Kamera OR Sensor OR Bildverarbeitung Deutschland',
-        '"Applikationsingenieur" Bildverarbeitung OR Machine Vision Deutschland',
-        '"Machine Vision Engineer" Germany Python',
-        '"Image Processing Engineer" Germany entry OR junior',
-        '"Sensor Validation Engineer" Germany junior',
-        '"Calibration Engineer" optical Germany',
-        '"Vision Systems" Application Engineer Germany',
-        '"3D vision" engineer Germany junior',
-        '"metrology engineer" image processing Germany',
-        '"AOI" engineer Germany Python',
-        '"Test Automation Engineer" camera sensor Germany',
-        '"Junior Entwicklungsingenieur" Bildverarbeitung Deutschland',
-        '"Ingenieur optische Messtechnik" Berufseinsteiger',
-        '"Computer Vision" "OpenCV" Germany "junior"',
-        '"Bildverarbeitung" "Python" "Junior" Deutschland',
-    ]
-    queries = [q for q in p0_today + p1_today + p2_today if q]
-    if len(queries) < query_limit:
-        queries.extend(q for q in fallback_queries if q not in queries)
-    queries = queries[:query_limit]
 
     companies = _target_company_rows()
     company_focus = _cycle(companies, company_limit, day_offset)
@@ -406,12 +362,10 @@ def run_plan(now: dt.datetime, tuning: dict | None = None) -> str:
             f"max full-JD validations={depth.get('max_full_jd_validations', 10)}; "
             f"require full JD for validated save={depth.get('require_full_jd_for_save', True)}."
         ),
+        "Lead decision policy: run lead_decision.py before validated saves; source/freshness policy gates the score.",
         "",
-        "### Query rotation",
-        f"Configured mix: P0={p0_count}, P1={p1_count}, P2={p2_count}, total={query_limit}",
+        _daily_search_plan(now, tuning),
     ]
-    for i, query in enumerate(queries, 1):
-        lines.append(f"{i}. {query}")
 
     lines.extend(["", "### Target-company focus"])
     if company_focus:

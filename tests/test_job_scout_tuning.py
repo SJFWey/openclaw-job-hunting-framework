@@ -51,7 +51,7 @@ class JobScoutTuningTests(unittest.TestCase):
                 preset,
             )
 
-    def test_preflight_run_plan_respects_query_budget(self) -> None:
+    def test_preflight_run_plan_uses_search_plan_budget(self) -> None:
         preflight = _load_preflight_module()
         preflight._recent_recommendation_keys = lambda: "none"
         preflight._recent_diagnostics = lambda: "none"
@@ -63,14 +63,16 @@ class JobScoutTuningTests(unittest.TestCase):
         tuning["budgets"]["p2_queries"] = 2
 
         plan = preflight.run_plan(dt.datetime(2026, 5, 31), tuning)
+        query_section = plan.split("### Exploration matrix", 1)[1].split("### Execution notes", 1)[0]
         query_lines = [
             line
-            for line in plan.splitlines()
+            for line in query_section.splitlines()
             if line[:2].rstrip(".").isdigit() or line[:3].rstrip(".").isdigit()
         ]
 
         self.assertEqual(len(query_lines), 7)
-        self.assertIn("Configured mix: P0=3, P1=2, P2=2, total=7", plan)
+        self.assertIn("## Search plan", plan)
+        self.assertIn("Priority mix: {'P0': 3, 'P1': 2, 'P2': 2}", plan)
 
     def test_preflight_final_line_is_wake_gate_json(self) -> None:
         preflight = _load_preflight_module()
