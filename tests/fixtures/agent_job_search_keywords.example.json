@@ -1,0 +1,40 @@
+{
+  "document_date": "2026-05-31",
+  "target_market": ["Germany", "remote EU"],
+  "clusters": [
+    {
+      "cluster_id": "vision-core",
+      "priority": "P0",
+      "description": "Computer vision and image-processing engineering roles.",
+      "keywords": ["computer vision", "image processing", "OpenCV", "machine vision"],
+      "job_titles_en": ["Computer Vision Engineer", "Image Processing Engineer"],
+      "boolean_queries": [
+        "\"Computer Vision Engineer\" Germany junior OR graduate",
+        "\"Image Processing Engineer\" Germany Python OR OpenCV"
+      ]
+    },
+    {
+      "cluster_id": "optical-metrology",
+      "priority": "P1",
+      "description": "Optical metrology, calibration, and sensor validation roles.",
+      "keywords": ["optical metrology", "calibration", "sensor validation"],
+      "job_titles_en": ["Optical Metrology Engineer", "Sensor Validation Engineer"],
+      "boolean_queries": [
+        "\"optical metrology\" engineer Germany junior",
+        "\"sensor validation\" engineer Germany"
+      ]
+    },
+    {
+      "cluster_id": "broad-junior-engineering",
+      "priority": "P2",
+      "description": "Broader junior engineering roles with plausible technical overlap.",
+      "keywords": ["test automation", "application engineering", "measurement technology"],
+      "job_titles_en": ["Test Engineer", "Application Engineer"],
+      "boolean_queries": [
+        "\"Junior Test Engineer\" measurement technology Germany",
+        "\"Application Engineer\" machine vision Germany"
+      ]
+    }
+  ],
+  "negative_keywords": ["senior", "principal", "postdoc", "PhD required"]
+}

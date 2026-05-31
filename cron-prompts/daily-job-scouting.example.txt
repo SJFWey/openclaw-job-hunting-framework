@@ -1,0 +1,22 @@
+Run the daily job-scouting workflow.
+
+Before searching, read the injected preflight output. It contains the tuning profile, query mix, source priority, freshness policy, validation depth, tracker health, recent feedback, diagnostics, and recent recommendation keys.
+
+Use:
+
+- `docs/job_scout_tuning.yaml` as the search-quality control file.
+- `docs/report_contract.md` as the report structure.
+- `scripts/score_lead.py` for compact deterministic scoring when structured signals are available.
+- `scripts/tracker_ops.py validate` and `scripts/tracker_ops.py dedupe-recs --dry-run` before and after tracker writes.
+
+Do not send applications, external messages, or destructive tracker edits.
+
+Daily report sections:
+
+1. Today's Best Actions
+2. Saved Recommendations
+3. Manual-Check Queue
+4. Rejected / Noise Patterns
+5. Search Coverage
+
+If configured validated/manual-check targets are missed, state why: duplicates, stale postings, no full JD, access limits, source failure, seniority mismatch, location mismatch, hard stack mismatch, or weak domain fit.

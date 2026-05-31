@@ -1,0 +1,34 @@
+[project]
+name = "openclaw-job-hunting-framework"
+version = "0.2.0"
+description = "Deterministic guardrail scripts for the OpenClaw job-hunting workspace framework."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "SJFWey" }]
+keywords = ["openclaw", "job-search", "agents", "skills", "framework"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "openpyxl>=3.1.2",
+]
+
+[project.optional-dependencies]
+dev = []
+pdf = [
+  "pypdf>=4.0.0",
+  "reportlab>=4.0.0",
+]
+yaml = [
+  "PyYAML>=6.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/SJFWey/openclaw-job-hunting-framework"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

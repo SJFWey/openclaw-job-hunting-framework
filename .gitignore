@@ -1,0 +1,76 @@
+# OpenClaw Job Hunting Framework — runtime and personal data stay local.
+
+# OpenClaw runtime bootstrap (instance layer)
+/AGENTS.md
+/HEARTBEAT.md
+/MEMORY.md
+/SOUL.md
+/IDENTITY.md
+/USER.md
+/TOOLS.md
+/DREAMS.md
+
+# Personal candidate materials
+/docs/profile.md
+/docs/target_companies.md
+/docs/agent_job_search_keywords.json
+/docs/search_diagnostics.md
+/docs/README_agent_job_search_keywords.md
+/docs/README-Hintergrund.md
+/docs/*-Hintergrund.md
+/docs/Bachelorarbeit*.md
+/docs/Masterarbeit*.md
+/docs/Projekt-*.md
+/docs/HiWi*.md
+/docs/Praktikum*.md
+/docs/Studienarbeit*.md
+/docs/Satzbaukaesten/
+/docs/Lebenslauf.pdf
+/docs/attachments/
+
+# Live cron prompt (workspace-specific paths)
+/cron-prompts/daily-job-scouting.txt
+
+# Runtime state and generated output
+.learnings/
+extensions/
+memory/
+media/
+data/
+attachments/
+temp/
+tmp/
+cache/
+artifacts/
+backups/
+.state/
+.openclaw/
+.clawhub/
+reference/
+output/
+
+# Local tooling
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+*.log
+
+# Binaries and secrets
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.pdf
+*.xlsx
+*.bak
+*.bak.*
+.env
+.env.*
+*.env
+**/*.key
+**/*.pem
+**/secrets*
+.DS_Store

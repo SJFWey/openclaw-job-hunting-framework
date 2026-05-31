@@ -1,0 +1,11 @@
+{
+  "title": "Junior Computer Vision Engineer",
+  "location": "Hannover, hybrid",
+  "work_mode": "hybrid",
+  "technical_overlap_score": 0.86,
+  "seniority_level": "junior",
+  "source_confidence": "full_jd",
+  "python_requirement_level": "primary",
+  "cpp_requirement_level": "secondary",
+  "jd_excerpt": "Build Python and OpenCV tooling for image-processing inspection systems. C++ is helpful for integration but not the primary stack."
+}

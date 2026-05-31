@@ -1,0 +1,81 @@
+# Job scouting tuning controls.
+#
+# Change `preset` first for normal daily tuning. Adjust detailed sections only
+# when a preset is not enough.
+
+preset: balanced
+
+budgets:
+  total_queries: 14
+  p0_queries: 6
+  p1_queries: 5
+  p2_queries: 3
+  target_companies_per_run: 8
+  validated_target_min: 3
+  validated_target_max: 8
+  manual_check_target_min: 15
+  manual_check_target_max: 25
+
+freshness:
+  prefer_posted_within_days: 14
+  allow_unknown_date: true
+  recheck_seen_after_days: 21
+  reject_expired: true
+  stale_manual_check_after_days: 30
+
+breadth:
+  adjacent_role_ratio: 0.35
+  broad_junior_ratio: 0.15
+  local_first: true
+  remote_germany_enabled: true
+  far_south_requires_score: 0.75
+
+depth:
+  validation_mode: standard
+  require_full_jd_for_save: true
+  extract_structured_signals: true
+  read_project_narratives_for_high_fit: true
+  max_full_jd_validations: 10
+
+sources:
+  direct_company:
+    weight: 1.0
+    save_allowed: true
+  join:
+    weight: 0.9
+    save_allowed: true
+  devjobs:
+    weight: 0.8
+    save_allowed: true
+  stepstone_individual:
+    weight: 0.75
+    save_allowed: true
+  stepstone_aggregate:
+    weight: 0.45
+    save_allowed: false
+  linkedin:
+    weight: 0.35
+    save_allowed: false
+  indeed:
+    weight: 0.55
+    save_allowed: false
+  xing:
+    weight: 0.50
+    save_allowed: false
+
+scoring:
+  save_threshold: 0.50
+  high_fit_threshold: 0.80
+  manual_review_on_flags: true
+  weights:
+    technical: 0.35
+    location: 0.34
+    seniority: 0.26
+    risk: 0.05
+
+feedback:
+  use_recent_feedback: true
+  feedback_window_days: 30
+  downrank_rejected_patterns: true
+  boost_accepted_clusters: true
+  min_signals_for_memory_proposal: 3
