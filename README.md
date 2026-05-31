@@ -37,41 +37,17 @@ For the full narrative, read [CASE_STUDY.md](CASE_STUDY.md).
 
 ## System Shape
 
-```mermaid
-flowchart TB
-    subgraph platform ["Platform: OpenClaw / agent harness"]
-        Cron["Cron agent turn"]
-        Model["LLM provider"]
-        Tools["Browser, shell, messaging tools"]
-    end
+The project is split into three layers:
 
-    subgraph framework ["Framework: tracked in this repo"]
-        Skills["skills/ runbooks"]
-        Scripts["scripts/ deterministic guardrails"]
-        Config["docs/ tuning and contracts"]
-        Tests["tests/ fixtures"]
-    end
+- **Platform:** OpenClaw or a similar agent harness supplies model routing,
+  cron turns, tools, and delivery channels.
+- **Framework:** this repository supplies skills, deterministic scripts,
+  tests, tuning defaults, and public workflow contracts.
+- **Runtime overlay:** candidate profile, keyword pack, tracker, daily memory,
+  CV, and generated materials stay local and gitignored.
 
-    subgraph runtime ["Runtime overlay: local and gitignored"]
-        Profile["candidate profile and keyword pack"]
-        Tracker["applications tracker"]
-        Memory["daily memory and diagnostics"]
-        Materials["CV and generated materials"]
-    end
-
-    Cron --> Model
-    Model --> Tools
-    Model --> Skills
-    Skills --> Scripts
-    Scripts --> Config
-    Skills --> Runtime
-    Scripts --> Runtime
-    platform --> framework
-    framework --> runtime
-```
-
-OpenClaw supplies the execution harness. This repository supplies the workflow
-framework. Candidate-specific material stays local.
+This separation is the core portability boundary: the framework can be public,
+while the same workspace remains useful for private daily job search.
 
 ## Daily Job Scouting Flow
 
