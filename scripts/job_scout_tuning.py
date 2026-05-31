@@ -97,6 +97,21 @@ DEFAULT_TUNING: dict[str, Any] = {
         "remote_germany_enabled": True,
         "far_south_requires_score": 0.75,
     },
+    "coverage": {
+        "min_distinct_clusters": 8,
+        "exploration_floor_ratio": 0.35,
+        "source_family_targets": {
+            "direct_or_ats": 4,
+            "specialized_boards": 4,
+            "aggregate_boards": 3,
+            "xray_search": 3,
+        },
+        "location_band_targets": {
+            "local_north": 0.45,
+            "germany_remote": 0.25,
+            "broader_germany": 0.30,
+        },
+    },
     "depth": {
         "validation_mode": "standard",
         "require_full_jd_for_save": True,
@@ -250,6 +265,7 @@ def format_tuning_summary(config: dict[str, Any]) -> str:
     budgets = config["budgets"]
     freshness = config["freshness"]
     breadth = config["breadth"]
+    coverage = config.get("coverage", {})
     depth = config["depth"]
     scoring = config["scoring"]
     lines = [
@@ -277,6 +293,11 @@ def format_tuning_summary(config: dict[str, Any]) -> str:
             f"adjacent_ratio={breadth['adjacent_role_ratio']}; "
             f"broad_junior_ratio={breadth['broad_junior_ratio']}; "
             f"far_south_requires_score={breadth['far_south_requires_score']}"
+        ),
+        (
+            "Coverage: "
+            f"min_distinct_clusters={coverage.get('min_distinct_clusters', 8)}; "
+            f"exploration_floor_ratio={coverage.get('exploration_floor_ratio', 0.35)}"
         ),
         (
             "Depth: "

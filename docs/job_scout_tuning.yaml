@@ -30,6 +30,19 @@ breadth:
   remote_germany_enabled: true
   far_south_requires_score: 0.75
 
+coverage:
+  min_distinct_clusters: 8
+  exploration_floor_ratio: 0.35
+  source_family_targets:
+    direct_or_ats: 4
+    specialized_boards: 4
+    aggregate_boards: 3
+    xray_search: 3
+  location_band_targets:
+    local_north: 0.45
+    germany_remote: 0.25
+    broader_germany: 0.30
+
 depth:
   validation_mode: standard
   require_full_jd_for_save: true

@@ -31,6 +31,10 @@ Only save when full-JD confidence is sufficient and the source policy allows val
 
 Plausible leads that should not be validated yet because of missing full JD, access limits, source failure, stale date, unclear seniority, or policy risk.
 
+Include the `lead_decision.py` policy reason when it differs from the raw score,
+for example: `decision=manual_check | source_policy=manual_check_only |
+freshness=unknown_date`.
+
 ### Rejected / Noise Patterns
 
 Summarize recurring rejected patterns, for example:
@@ -47,6 +51,7 @@ Summarize recurring rejected patterns, for example:
 Report what was searched:
 
 - P0/P1/P2 query mix,
+- search-plan cluster/source/location coverage,
 - target-company checks,
 - sources visited,
 - freshness coverage,

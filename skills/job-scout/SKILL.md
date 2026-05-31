@@ -17,21 +17,30 @@ On user acceptance, promote leads into full applications via the `job-intake` fl
 5. Extract implicit signals from recent `applications` and `recommendations` history.
 6. If a stable preference pattern appears, summarize the evidence and ask before updating `MEMORY.md`.
 7. Read `docs/target_companies.md` and start with relevant direct company career pages when the search scope matches the target pool.
-8. Generate targeted search queries from the configured P0/P1/P2 budget, source priority, freshness policy, and target-company count.
-9. Collect job leads from search results. Treat provider filters as hints, not guarantees.
+8. Use the preflight `Search plan` as the daily scouting execution baseline. Cover role clusters, source families, location bands, freshness intent, and validation intent before narrowing to obvious CV/profile terms.
+9. Run scouting in two phases:
+   - **Broad candidate pool:** collect a wide, shallow set across the search/exploration matrix. Do not overfit to the candidate's most prominent experience keywords; include adjacent sensor, metrology, validation, application-engineering, and junior engineering clusters when configured.
+   - **Validation queue:** choose the most promising candidates for full-JD validation based on source confidence, freshness, role cluster coverage, and likely fit. Do not spend full validation budget only on the first obvious search family.
+10. Collect job leads from search results. Treat provider filters as hints, not guarantees.
    - Check posting freshness early. Jobs published more than 1 month ago should not be considered for validated recommendations; if date is missing/old but a direct company/ATS page clearly proves the posting is still active and the fit is unusually strong, keep it as Manual-check with the caveat.
-10. Before scoring a validated-save candidate, use LLM semantic reading of the JD to extract structured lead signals. Do this for every full-JD candidate, not just obvious edge cases. Include:
+11. Before scoring a validated-save candidate, use LLM semantic reading of the JD to extract structured lead signals. Do this for every full-JD candidate, not just obvious edge cases. Include:
    - `title`, `company`, `location`, `work_mode`, `source_confidence`
+   - `source_type`, `platform`, `published_date`, `posted_date`, `application_deadline`, `active_direct_page`, `expired` when known
    - `technical_score` (0-1) and compact evidence
    - `cpp_requirement_level`, `csharp_requirement_level`, `python_requirement_level`: `none`, `optional`, `secondary`, `important`, `primary`, or `unclear`
    - `seniority_level`, `years_required`, `academic_track`, `phd_required`, `postdoc`
    - `travel_level`, `visa_blocker` / `work_authorization_blocker`, `pure_plc`, `robotics_control_heavy`
    - `published_date`, `application_deadline`, or direct-page active evidence; stale postings older than 1 month are Manual-check/reject by default.
    Save the JSON temporarily and pass it to `score_lead.py --signals-file`.
-11. Score each lead with dimensions before assigning the final 0.0-1.0 score. **Read `references/scoring-rubric.md`** and prefer the deterministic helper:
+12. Score each lead with dimensions before assigning the final 0.0-1.0 score. **Read `references/scoring-rubric.md`** and prefer the deterministic helper:
    ```sh
    uv run python scripts/score_lead.py --signals-file /tmp/lead_signals.json --json
    ```
+   Run the policy decision helper before every validated save:
+   ```sh
+   uv run python scripts/lead_decision.py --signals-file /tmp/lead_signals.json --json
+   ```
+   Treat `lead_decision.py` as the save policy gate: `validated_candidate` may be saved after dedupe; `manual_check`, `backup`, and `reject` must not be saved as validated recommendations.
    Use its output for tracker fields unless you have a documented override reason.
    - `technical_score` (weight **0.35**): CV/3D/industrial vision/testing overlap — agent-assessed.
    - `location_score` (weight **0.34**): commute from **Clausthal-Zellerfeld**; **strong penalty** for far south (e.g. München ~0.15–0.22 onsite).
@@ -45,26 +54,31 @@ On user acceptance, promote leads into full applications via the `job-intake` fl
    - If `review_flags` or `signal_conflicts` are returned, keep the lead in Manual-check unless the report explicitly resolves the issue.
    - Do **not** save C++/C#-**first** roles (Developer title, sehr gute/fundiert C++ or C# alone). Python-primary JDs with `C++/Python` may be saved with a weak-C++ note in `reason`.
    - Exclude Postdoc programs from validated recommendations. PhD/Promotion-required roles should be manual-check or rejected. Wissenschaftliche*r Mitarbeiter*in roles are allowed when they are not Postdoc/PhD-required and the fit/location are plausible.
-12. Verify the original job page before saving whenever possible.
+13. Verify the original job page before saving whenever possible.
     - Verify posting freshness where possible. Do not validated-save postings published more than 1 month ago unless the direct company/ATS page clearly shows the role is still active and the report explains the exception.
     - For LinkedIn/StepStone/search-result leads with only snippets, keep them in a separate `Manual-check links` section unless full body metadata is available.
     - For LinkedIn guest search, dismiss sign-in/cookie modals in the browser and extract title/company/location/date/link from the results list; use these as manual-check candidates, not validated recommendations by default.
+    - Do not bypass anti-bot controls, login walls, or access restrictions. If the page is blocked, login-gated, cookie-shell-only, or snippet-only, downgrade to Manual-check and look for a public direct company/ATS alternative.
     - WeAreDevelopers and individual StepStone/Indeed pages can sometimes expose full job bodies for validation when LinkedIn only gives snippets.
     - When the user asks whether prior daily recommendations were recorded, distinguish tracker-backed validated recommendations from Manual-check links: validated score-qualified leads are stored in the Recommendations sheet; access-limited Manual-check links are normally report-only unless enough reliable metadata exists to save them.
-13. Deduplicate: skip if normalized URL already exists, then check company+position+location.
+14. Deduplicate: skip if normalized URL already exists, then check company+position+location.
     - In scheduled/heartbeat runs, re-read or validate the tracker immediately before and after adding recommendations; another concurrent run may have added adjacent REC IDs or equivalent company/title leads after your initial snapshot.
     - If you accidentally add a same-company/same-role duplicate under an alternate title/URL, do not delete it during heartbeat; mark the later/less canonical recommendation `rejected` with `decision_reason="Duplicate of REC-..."`, then run `validate` and `dedupe-recs --dry-run`.
-14. Write qualifying validated leads (score >= 0.5) to recommendations sheet with source type, score dimensions, fit labels, risk flags, and short reason.
-15. Present `Today’s best actions` first: top validated leads or manual checks with priority, compact score/risk, and one application angle. Then separate `Saved recommendations`, `Manual-check queue`, `Rejected/noise patterns`, and `Search coverage`.
-16. Append scouting diagnostics to `docs/search_diagnostics.md` when a run reveals useful repeated noise, stale sources, or strong source patterns. If the file does not exist yet, create it with a dated run note rather than treating that as an error.
+15. Write qualifying validated leads (score >= 0.5) to recommendations sheet with source type, score dimensions, fit labels, risk flags, and short reason.
+16. Present `Today’s best actions` first: top validated leads or manual checks with priority, compact score/risk, and one application angle. Then separate `Saved recommendations`, `Manual-check queue`, `Rejected/noise patterns`, and `Search coverage`.
+    - In Search coverage, mention cluster/source/location breadth and any leads blocked by source/freshness policy.
+    - Treat acceptance rate as the main long-term quality signal; saved count alone is not the success metric.
+17. Append scouting diagnostics to `docs/search_diagnostics.md` when a run reveals useful repeated noise, stale sources, or strong source patterns. If the file does not exist yet, create it with a dated run note rather than treating that as an error.
     - Before patching diagnostics, re-read the file if the edit tool reports an external modification; heartbeat/scouting runs can update it between your first read and write.
-17. For daily mass-application heartbeat reports, use the configured validated/manual targets from `docs/job_scout_tuning.yaml`; explicitly explain if fewer are found due to coverage, duplicates, access restrictions, source failures, freshness, or weak relevance.
-18. If user says "take this one" or "intake", call `tracker_ops.promote_recommendation_to_application()` only after a short application-readiness review.
+18. For daily mass-application heartbeat reports, use the configured validated/manual targets from `docs/job_scout_tuning.yaml`; explicitly explain if fewer are found due to coverage, duplicates, access restrictions, source failures, freshness, or weak relevance.
+19. If user says "take this one" or "intake", call `tracker_ops.promote_recommendation_to_application()` only after a short application-readiness review.
 
 ## References
 - `references/scoring-rubric.md` — dimension weights, location tiers from Clausthal-Zellerfeld, seniority penalties, and `score_lead.py` usage.
 - Workspace `docs/agent_job_search_keywords.json` — personal keyword/query pack (`scripts/search_keywords.py`).
 - Workspace `docs/job_scout_tuning.yaml` — configurable search breadth, freshness, validation depth, source priority, score thresholds, and feedback loop controls (`scripts/job_scout_tuning.py`).
+- `scripts/search_plan.py` — default exploration matrix for broader source/cluster/location coverage.
+- `scripts/lead_decision.py` — source/freshness/score policy gate before validated saves.
 - `references/daily-heartbeat-source-patterns.md` — recurring source/validation patterns for the mass-application scouting heartbeat.
 - `references/cron-heartbeat-troubleshooting.md` — diagnosis and recovery notes for missing/paused/removed daily job-scouting cron jobs.
 
